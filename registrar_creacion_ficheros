@@ -1,0 +1,52 @@
+#!/bin/bash
+mkdir /tmp/.ficheros_registro_creacion 2> /dev/null
+pid=$(ps | head -2 | tail -1 | cut -d' ' -f1)
+touch /tmp/.ficheros_registro_creacion/$pid
+
+function cerrar {
+    rm /tmp/.ficheros_registro_creacion/$pid
+    exit 1
+}
+trap cerrar SIGHUP SIGINT SIGTERM
+
+case "$1" in
+   --help)
+      echo "Uso: $0 DIRECTORIO fichero_registro"
+      exit 0
+      ;;
+   -stop)
+	for fich in ls /tmp/.ficheros_registro_creacion/; do
+	    kill -2 $fich
+	done
+	exit 0
+      ;;
+esac
+
+if (( $# != 2 )); then
+   echo 'No ha introducido el número de argumentos correcto' >&2
+   exit 1
+fi
+
+if [[ ! -d $1 ]];then
+   echo "$1 no es un directorio" >&2
+   exit 1
+fi
+
+ls $2 >/dev/null 2>/dev/null
+
+if (( $? != 0 ));then
+   touch $2
+elif [[ ! -f $2 ]]; then
+   echo "$2 no es un fichero" >&2
+   exit 1;
+fi
+
+dir=$1
+log=$2
+
+
+while true;do
+    ristra=$(inotifywait --format "%T %f" --timefmt "%d/%m/%Y-%H:%M:%S" -r -e create $dir)
+    echo $ristra $(ls -l $(readlink -f $dir)/$(echo $ristra | cut -d ' ' -f2 | sed 's\ \\' ) | cut -d ' ' -f3 | tail -1) | head -1  >> $log
+done
+
