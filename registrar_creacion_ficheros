@@ -19,8 +19,13 @@ case "$1" in
 	for fich in ls /tmp/.ficheros_registro_creacion/; do
 	    kill -2 $fich
 	done
-	exit 0
-      ;;
+	exit 0       
+	;;
+   --resume)
+       echo $1
+       shift
+       echo $1
+       ;;
 esac
 
 if (( $# != 2 )); then
