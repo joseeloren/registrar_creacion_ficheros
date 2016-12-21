@@ -1,7 +1,10 @@
 #!/bin/bash
+dir_pids="/tmp/.fichero_registro_creacion/"
 mkdir /tmp/.ficheros_registro_creacion 2> /dev/null
-pid=$(ps | head -2 | tail -1 | cut -d' ' -f1)
-touch /tmp/.ficheros_registro_creacion/$pid
+pid=$(ps | head -2 | tail -1 | cut -d' ' -f2)
+echo $pid
+ps
+$(touch ${dir_pids}$pid)
 
 function cerrar {
     rm /tmp/.ficheros_registro_creacion/$pid
