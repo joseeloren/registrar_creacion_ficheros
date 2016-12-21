@@ -1,52 +1,52 @@
 #!/bin/bash
 dir_pids="/tmp/.fichero_registro_creacion/" 
-mkdir $dir_pids 
+mkdir $dir_pids 2> /dev/null
 #pid=$(ps | head -2 | tail -1 | cut -d' ' -f2)
 touch ${dir_pids}$$
 
 function cerrar {
-    rm ${dir_pids}$$
+    rm ${dir_pids}$$ 2> /dev/null
     exit 1
 }
 
 trap cerrar SIGHUP SIGINT SIGTERM
 
 case "$1" in
-   --help)
-      echo "Uso: $0 DIRECTORIO fichero_registro"
-      exit 0
-      ;;
-   -stop)
-       for fich in ls /tmp/.ficheros_registro_creacion/; do
-	   echo $fich
-	    kill -2 $fich
+    --help)
+	echo "Uso: $0 DIRECTORIO fichero_registro"
+	exit 0
+	;;
+    -stop)
+	for fich in $(ls $dir_pids); do
+	    echo $fich
+	    kill -2 $fich 2> /dev/null
 	done
 	exit 0       
 	;;
-   --resume)
-       echo $1
-       shift
-       echo $1
-       ;;
+    --resume)
+	echo $1
+	shift
+	echo $1
+	;;
 esac
 
 if (( $# != 2 )); then
-   echo 'No ha introducido el número de argumentos correcto' >&2
-   exit 1
+    echo 'No ha introducido el número de argumentos correcto' >&2
+    exit 1
 fi
 
 if [[ ! -d $1 ]];then
-   echo "$1 no es un directorio" >&2
-   exit 1
+    echo "$1 no es un directorio" >&2
+    exit 1
 fi
 
 ls $2 >/dev/null 2>/dev/null
 
 if (( $? != 0 ));then
-   touch $2
+    touch $2
 elif [[ ! -f $2 ]]; then
-   echo "$2 no es un fichero" >&2
-   exit 1;
+    echo "$2 no es un fichero" >&2
+    exit 1;
 fi
 
 dir=$1
