@@ -1,7 +1,9 @@
 #!/bin/bash
-dir_pids="/tmp/.fichero_registro_creacion/" 
-mkdir $dir_pids 2> /dev/null
-#pid=$(ps | head -2 | tail -1 | cut -d' ' -f2)
+dir_pids="/tmp/.fichero_registro_creacion/"
+ls $dir_pids 1> /dev/null 2> /dev/null
+if (( $? != 0 ));then
+    mkdir $dir_pids
+fi
 touch ${dir_pids}$$
 
 function cerrar {
@@ -17,16 +19,14 @@ case "$1" in
 	exit 0
 	;;
     -stop)
-	for fich in $(ls $dir_pids); do
-	    echo $fich
-	    kill -2 $fich 2> /dev/null
-	done
+	IFS=' '
+	ls $dir_pids | while read -r fich; do
+	    kill -1 $fich 2>/dev/null >/dev/null
+	done 
 	exit 0       
 	;;
     --resume)
-	echo $1
 	shift
-	echo $1
 	;;
 esac
 
@@ -52,9 +52,10 @@ fi
 dir=$1
 log=$2
 
-
 while true;do
     ristra=$(inotifywait --format "%T %f" --timefmt "%d/%m/%Y-%H:%M:%S" -r -e create $dir 2>/dev/null)
-    echo $ristra $(ls -l $(readlink -f $dir)/$(echo $ristra | cut -d ' ' -f2 | sed 's\ \\' ) | cut -d ' ' -f3 | tail -1) | head -1  >> $log
+    ristra_formateada=$(echo $ristra $(ls -l $(readlink -f $dir)/$(echo $ristra | cut -d ' ' -f2 | sed 's\ \\' ) | cut -d ' ' -f3 | tail -1) | head -1)
+    echo $ristra_formateada >> $log
+    echo $ristra_formateada
 done
 
