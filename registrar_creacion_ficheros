@@ -1,11 +1,14 @@
 #!/bin/bash
 dir_pids="/tmp/.fichero_registro_creacion/"
+#Comprobamos si el dir_pids exciste, si no lo creamos
 ls $dir_pids 1> /dev/null 2> /dev/null
 if (( $? != 0 ));then
     mkdir $dir_pids
 fi
+#creamos un ficheron con el pid del proceso en el directorio
 touch ${dir_pids}$$
 
+#Funcion que borra su propio pid del directorio
 function cerrar {
     rm ${dir_pids}$$ 2> /dev/null
     exit 1
@@ -13,12 +16,14 @@ function cerrar {
 
 trap cerrar SIGHUP SIGINT SIGTERM
 
+#comprobacion de argumentos
 case "$1" in
     --help)
 	echo "Uso: $0 DIRECTORIO fichero_registro"
 	exit 0
 	;;
     -stop)
+	#recorre el directorio de pids y manda un SIGTERM a cada proceso
 	IFS=' '
 	ls $dir_pids | while read -r fich; do
 	    kill -1 $fich 2>/dev/null >/dev/null
@@ -42,6 +47,7 @@ fi
 
 ls $2 >/dev/null 2>/dev/null
 
+#crea el fichero del log si no existe
 if (( $? != 0 ));then
     touch $2
 elif [[ ! -f $2 ]]; then
@@ -52,6 +58,7 @@ fi
 dir=$1
 log=$2
 
+#establece un inotiwait y añade la ristra al log
 while true;do
     ristra=$(inotifywait --format "%T %f" --timefmt "%d/%m/%Y-%H:%M:%S" -r -e create $dir 2>/dev/null)
     ristra_formateada=$(echo $ristra $(ls -l $(readlink -f $dir)/$(echo $ristra | cut -d ' ' -f2 | sed 's\ \\' ) | cut -d ' ' -f3 | tail -1) | head -1)
